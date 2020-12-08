@@ -22,7 +22,7 @@ use_cuda = torch.cuda.is_available()
 
 def load_model(config):
     if os.path.exists(config.model_path):
-        print('Reloading model parameters..')
+        print 'Reloading model parameters..'
         checkpoint = torch.load(config.model_path)
         model = QRNNModel(QRNNLayer, checkpoint['num_layers'], checkpoint['kernel_size'],
                           checkpoint['hidden_size'], checkpoint['emb_size'], 
@@ -34,7 +34,7 @@ def load_model(config):
         checkpoint[key] = config.__dict__[key]
 
     if use_cuda:
-        print('Using gpu..')
+        print 'Using gpu..'
         model = model.cuda()
 
     model.eval()
@@ -54,7 +54,7 @@ def decode(config):
 
     lines = 0
     max_decode_step = config['max_decode_step']
-    print('Decoding starts..')
+    print 'Decoding starts..'
     with fopen(config['decode_output'], 'w') as fout:
         for idx, source_seq in enumerate(test_set):
             source, source_len = prepare_batch(source_seq)
@@ -75,7 +75,7 @@ def decode(config):
 
             states, memories = model.encode(source, source_len)
 
-            for t in range(max_decode_step):
+            for t in xrange(max_decode_step):
                 # logits: [batch_size x max_decode_step, tgt_vocab_size]
                 _, logits = model.decode(preds_prev[:,:t+1], states, memories)
                 # outputs: [batch_size, max_decode_step]
@@ -83,13 +83,13 @@ def decode(config):
                 preds[:,t] = outputs[:,t].data
                 if t < max_decode_step - 1:
                     preds_prev[:,t+1] = outputs[:,t]
-            for i in range(len(preds)):
+            for i in xrange(len(preds)):
                 fout.write(str(seq2words(preds[i], target_inv_dict)) + '\n')
                 fout.flush()
 
             lines += source.size(0)
-            print('  {}th line decoded'.format(lines))
-        print('Decoding terminated')
+            print '  {}th line decoded'.format(lines)
+        print 'Decoding terminated'
 
 
 if __name__ == "__main__":

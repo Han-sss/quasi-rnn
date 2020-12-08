@@ -22,7 +22,7 @@ use_cuda = torch.cuda.is_available()
 
 
 def create_model(config):  # TODO: not to use config.num_symbols, but actual dict size
-    print('Creating new model parameters..')
+    print 'Creating new model parameters..'
     model = QRNNModel(QRNNLayer, config.num_layers, config.kernel_size,
                       config.hidden_size, config.emb_size,
                       config.num_enc_symbols, config.num_dec_symbols)
@@ -34,14 +34,14 @@ def create_model(config):  # TODO: not to use config.num_symbols, but actual dic
     
     model_path = os.path.join(config.model_dir, config.model_name)
     if os.path.exists(model_path):
-        print('Reloading model parameters..')
+        print 'Reloading model parameters..'
         checkpoint = torch.load(model_path)
 
         model_state['epoch'] = checkpoint['epoch']
         model_state['train_steps'] = checkpoint['train_steps']
         model.load_state_dict(checkpoint['state_dict'])
     if use_cuda:
-        print('Using gpu..')
+        print 'Using gpu..'
         model = model.cuda()
 
     model.train()
@@ -50,7 +50,7 @@ def create_model(config):  # TODO: not to use config.num_symbols, but actual dic
 
 def train(config):
     # Load parallel data to train
-    print('Loading training data..')
+    print 'Loading training data..'
     train_set = BiTextIterator(source=config.src_train, target=config.tgt_train,
                                source_dict=config.src_vocab, target_dict=config.tgt_vocab,
                                batch_size=config.batch_size, maxlen=config.max_seq_len,
@@ -59,7 +59,7 @@ def train(config):
                                maxibatch_size=config.maxi_batches)
     valid_set = None
     if config.src_valid and config.tgt_valid:
-        print('Loading validation data..')
+        print 'Loading validation data..'
         valid_set = BiTextIterator(source=config.src_valid, target=config.tgt_valid,
                                    source_dict=config.src_vocab, target_dict=config.tgt_vocab,
                                    batch_size=config.batch_size, maxlen=None,
@@ -77,11 +77,11 @@ def train(config):
     words_seen, sents_seen = 0, 0
     start_time = time.time()
     # Training loop
-    print('Training..')
-    for epoch_idx in range(config.max_epochs):
+    print 'Training..'
+    for epoch_idx in xrange(config.max_epochs):
         if model_state['epoch'] >= config.max_epochs:
-            print('Training is already complete.', \
-                  'current epoch:{}, max epoch:{}'.format(model_state['epoch'], config.max_epochs))
+            print 'Training is already complete.', \
+                  'current epoch:{}, max epoch:{}'.format(model_state['epoch'], config.max_epochs)
             break
         for source_seq, target_seq in train_set:    
             # Get a batch from training parallel data
@@ -89,7 +89,7 @@ def train(config):
                 prepare_train_batch(source_seq, target_seq, config.max_seq_len)
  
             if enc_input is None or dec_input is None or dec_target is None:
-                print('No samples under max_seq_length ', config.max_seq_len)
+                print 'No samples under max_seq_length ', config.max_seq_len
                 continue
            
             if use_cuda:
@@ -128,9 +128,9 @@ def train(config):
                 words_per_sec = words_seen / time_elapsed
                 sents_per_sec = sents_seen / time_elapsed
 
-                print('Epoch ', model_state['epoch'], 'Step ', model_state['train_steps'], \
+                print 'Epoch ', model_state['epoch'], 'Step ', model_state['train_steps'], \
                       'Perplexity {0:.2f}'.format(avg_perplexity), 'Step-time {0:.2f}'.format(step_time), \
-                      '{0:.2f} sents/s'.format(sents_per_sec), '{0:.2f} words/s'.format(words_per_sec))
+                      '{0:.2f} sents/s'.format(sents_per_sec), '{0:.2f} words/s'.format(words_per_sec)
 
                 loss = 0.0
                 words_seen, sents_seen = 0, 0
@@ -139,7 +139,7 @@ def train(config):
             # Execute a validation process
             if valid_set and model_state['train_steps'] % config.valid_freq == 0:
                 model.eval()
-                print('Validation step')
+                print 'Validation step'
                 valid_steps = 0
                 valid_loss = 0.0
                 valid_sents_seen = 0
@@ -164,14 +164,14 @@ def train(config):
                     valid_steps += 1 
                     valid_loss += float(step_loss.data[0])
                     valid_sents_seen += enc_input.size(0)
-                    print('  {} samples seen'.format(valid_sents_seen))
+                    print '  {} samples seen'.format(valid_sents_seen)
 
                 model.train()
-                print('Valid perplexity: {0:.2f}'.format(math.exp(valid_loss / valid_steps)))
+                print 'Valid perplexity: {0:.2f}'.format(math.exp(valid_loss / valid_steps))
 
             # Save the model checkpoint
             if model_state['train_steps'] % config.save_freq == 0:
-                print('Saving the model..')
+                print 'Saving the model..'
 
                 model_state['state_dict'] = model.state_dict()
 #                state = dict(list(model_state.items()))
@@ -180,7 +180,7 @@ def train(config):
 
         # Increase the epoch index of the model
         model_state['epoch'] += 1
-        print('Epoch {0:} DONE'.format(model_state['epoch']))
+        print 'Epoch {0:} DONE'.format(model_state['epoch'])
 
 
 if __name__ == "__main__":

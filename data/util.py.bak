@@ -9,12 +9,12 @@ nematus project (https://github.com/rsennrich/nematus)
 
 import sys
 import json
-import pickle as pkl
+import cPickle as pkl
 import gzip
 
 #json loads strings as unicode; we currently still work with Python 2 strings, and need conversion
 def unicode_to_utf8(d):
-    return dict((key.encode("UTF-8"), value) for (key,value) in list(d.items()))
+    return dict((key.encode("UTF-8"), value) for (key,value) in d.items())
 
 
 def fopen(filename, mode='r'):
@@ -35,7 +35,7 @@ def load_dict(filename):
 def load_inv_dict(dict_path):
     orig_dict = load_dict(dict_path)
     idict = {}
-    for words, idx in orig_dict.items():
+    for words, idx in orig_dict.iteritems():
         idict[idx] = words
     return idict
 
